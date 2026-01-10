@@ -1,17 +1,19 @@
 const express=require("express")
 const app=express();
+//order of route matter a lot
 
-app.use("/test/login", (req, res) => {
-  res.send("login");
+
+
+app.get("/user",(req,res)=>{
+  res.send({firstName:"Mini",lastName:"Mishra"});
 });
-app.use("/test", (req, res) => {
-  res.send("test");
+
+app.post("/user",(req,res)=>{
+  res.send("data successfully saved");
 });
-app.use("/create", (req, res) => {
-  res.send("create");
-});
-app.use("/", (req, res) => {
-  res.send("hello from the server!");
+
+app.delete("/user",(req,res)=>{
+  res.send("deleted successfully");
 });
 
 app.listen(3000,()=>{
