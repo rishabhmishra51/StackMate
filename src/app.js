@@ -4,7 +4,14 @@ const app=express();
 
 
 
-app.get("/user",(req,res)=>{
+// app.get("/user",(req,res)=>{
+//   console.log(req.query);
+  
+//   res.send({firstName:"Mini",lastName:"Mishra"});
+// });
+
+app.get("/user/:userId/:name/:password",(req,res)=>{
+  console.log(req.params);  
   res.send({firstName:"Mini",lastName:"Mishra"});
 });
 
