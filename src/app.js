@@ -1,26 +1,31 @@
 const express=require("express")
 const app=express();
+const {adminAuth,userAuth} =require("./middlewares/auth")
+//handle Auth middleware for all get,post,patch ...
+app.use("/admin",adminAuth);
 
 app.use("/user",(req,res,next)=>{
-console.log("handling the route user");
-next();
-// res.send("Response");
+if(req.path === "/login"){
+  return next();
+}
+userAuth(req,res,next);
+})
 
-},(req,res,next)=>{
- console.log("handling the route user 2" );
-  // res.send("response 2nd") 
-  next();
-}
-,(req,res,next)=>
-{
- console.log("handling the route user 3 ");
-  // res.send("response 3rd") 
-next();
-}
-,(req,res,next)=>{
- console.log("handling the route user 4");
-  res.send("response 4th") 
-// next();
+app.get("/user/profile", (req, res) => {
+  res.send("User profile");
+});
+
+app.get("/user/orders", (req, res) => {
+  res.send("User orders");
+});
+
+
+
+app.get("/admin/getAlldata",(req,res)=>{
+  res.send("All data sent");
+});
+app.get("/admin/deleteUser",(req,res)=>{
+  res.send("a User deleted");
 });
 
 app.listen(3000,()=>{
