@@ -1,26 +1,26 @@
 const express=require("express")
 const app=express();
-//order of route matter a lot
 
+app.use("/user",(req,res,next)=>{
+console.log("handling the route user");
+next();
+// res.send("Response");
 
-
-// app.get("/user",(req,res)=>{
-//   console.log(req.query);
-  
-//   res.send({firstName:"Mini",lastName:"Mishra"});
-// });
-
-app.get("/user/:userId/:name/:password",(req,res)=>{
-  console.log(req.params);  
-  res.send({firstName:"Mini",lastName:"Mishra"});
-});
-
-app.post("/user",(req,res)=>{
-  res.send("data successfully saved");
-});
-
-app.delete("/user",(req,res)=>{
-  res.send("deleted successfully");
+},(req,res,next)=>{
+ console.log("handling the route user 2" );
+  // res.send("response 2nd") 
+  next();
+}
+,(req,res,next)=>
+{
+ console.log("handling the route user 3 ");
+  // res.send("response 3rd") 
+next();
+}
+,(req,res,next)=>{
+ console.log("handling the route user 4");
+  res.send("response 4th") 
+// next();
 });
 
 app.listen(3000,()=>{
