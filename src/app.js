@@ -1,22 +1,36 @@
-const express=require("express")
-const app=express();
+const express = require("express");
+const connectDB = require("./config/database");
+const User = require("./models/user");
 
-app.get("/getUserData",(req,res)=>{
-  try{
-throw new Error("dsafhj");
-res.send("user data sent") 
-  }
-  catch(err){
-res.status(500).send("something went wrong 1");
-  }
+const app = express();
+
+app.post("/signup", async (req, res) => {
+  const user = new User({
+    firstName: "sachin",
+    lastName: "chaubey",
+    emailId: "sachin40@gmail.com",
+    password: "smart@0000"
+  });
+try{
+    await user.save();
+  res.send("User saved in StackMate");
+}
+catch(err){
+  console.log("Error on saving the user!!"+err.message);
+  
+}
+
 });
 
-app.use("/",(err,req,res,next)=>{
-  if(err){
-    res.status(500).send("something went wrong");
-  }
-})
+connectDB()
+  .then(() => {
+    console.log("Database connected");
+    console.log("Using DB:", require("mongoose").connection.name);
 
-app.listen(3000,()=>{
-     console.log("Server is successful listing on port 3000");    
-});
+    app.listen(3000, () => {
+      console.log("Server running on port 3000");
+    });
+  })
+  .catch((err) => {
+    console.error("MongoDB error:", err.message);
+  });
