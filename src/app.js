@@ -4,13 +4,14 @@ const User = require("./models/user");
 
 const app = express();
 
+//this express inbuild middleware now activated for all routes 
+app.use(express.json());
+
 app.post("/signup", async (req, res) => {
-  const user = new User({
-    firstName: "sachin",
-    lastName: "chaubey",
-    emailId: "sachin40@gmail.com",
-    password: "smart@0000"
-  });
+
+  //difference between JSON vs JS object 
+
+  const user = new User(req.body);
 try{
     await user.save();
   res.send("User saved in StackMate");
