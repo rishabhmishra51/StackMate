@@ -6,11 +6,8 @@ const app = express();
 
 //this express inbuild middleware now activated for all routes 
 app.use(express.json());
-
+//difference between JSON vs JS object 
 app.post("/signup", async (req, res) => {
-
-  //difference between JSON vs JS object 
-
   const user = new User(req.body);
 try{
     await user.save();
