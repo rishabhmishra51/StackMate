@@ -1,12 +1,18 @@
 const express = require("express");
+const app = express();
 const connectDB = require("./config/database");
 const User = require("./models/user");
 const {validateSignUpData}=require("./utils/validation")
 const bcrypt=require("bcrypt")
-const app = express();
+const cookieParser=require("cookie-parser")
+const jwt = require("jsonwebtoken")
+const {userAuth}=require("./middlewares/auth")
 
 //this express inbuild middleware now activated for all routes 
 app.use(express.json());
+//this middleware help to read the cookies back
+app.use(cookieParser())
+
 //difference between JSON vs JS object 
 const { body, validationResult } = require("express-validator");
 
@@ -19,7 +25,7 @@ app.post("/signup", async (req, res) => {
   //Encrypt the password 
   
   const passwordHash = await bcrypt.hash(password,10);
-  console.log(passwordHash);
+ 
   // Creating a new instance of the User model
   const user = new User({
     firstName,
@@ -45,6 +51,9 @@ if(!user){
 }
 const isPasswordValid = await bcrypt.compare(password,user.password)
 if(isPasswordValid){
+  const token =await jwt.sign({_id:user._id},"Rishabh@4873",{expiresIn: "1d"})
+ 
+  res.cookie("token",token,{expires:new Date(Date.now()+9*3600000)})
   res.send(" Login successfully!!")
 }
 else{
@@ -56,70 +65,20 @@ catch(err){
 }
 });
 
-//Get user by emailId
-app.get("/user",async(req,res)=>{
-  const userEmail=req.body.emailId;
-  try{
-   const users =  await  User.find({emailId:userEmail});
-    if(users.length === 0){
-      res.status(404).send("User not found!")
-    }
-   res.send(users);
-  }
-  catch(err){
-    res.status(400).send("Something went wrong");
-  }
-})
-
-//feed api for  getting all the users from database
-app.get("/feed",async(req,res)=>{
- try{
-    const users=await User.find({});
-    res.send(users);
+app.get("/profile",userAuth,async(req,res)=>{
+ try{ 
+  
+  const user=req.user;
+  res.send(user)
  }
  catch(err){
-  res.status(400).send("Something went wrong!")
+  res.status(400).send("ERROR : "+err.message)
  }
-})
+});
 
-//delete use
-app.delete("/user",async(req,res)=>{
-  const userId=req.body.userId;
-  try{
-    const user=await User.findByIdAndDelete(userId);
-    res.send("user deleted successfully!");
-  }
-  catch(err){
-    res.status(400).send("Something went wrong");
-  }
-})
-
-//update 
-app.patch("/user/:userId",async(req,res)=>{
-  const userId=req.params?.userId;
-  const data=req.body;
- 
- 
-  try{
-     //making that there is after creation not allowed update like email
-  const allowedUpdate =["firstName","lastName","gender","about","skills","photoUrl","age","password"]
-
-  const isUpdateAllowed = Object.keys(data).every((k)=> allowedUpdate.includes(k));
-  if(!isUpdateAllowed){
-    res.status(400).send("Update Not allowed")
-  }
-
-   const user = await User.findByIdAndUpdate({_id:userId},data,{
-    returnDocument:'before',
-     runValidators:true,
-    })
-    console.log(user);    
-    res.send("User updated successfully!");
-   
-  }
-  catch(err){
-    res.status(400).send("Update failed!",err.message)
-  }
+app.post("/sendConnectionRequest",userAuth,async(req,res)=>{
+  console.log("Sending a connection Request");
+  res.send("Connection Request sent!");
 });
 
 connectDB()
