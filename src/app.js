@@ -7,18 +7,27 @@ const app = express();
 //this express inbuild middleware now activated for all routes 
 app.use(express.json());
 //difference between JSON vs JS object 
-app.post("/signup", async (req, res) => {
-  const user = new User(req.body);
-try{
-    await user.save();
-  res.send("User saved in StackMate");
-}
-catch(err){
-  console.log("Error on saving the user!!"+err.message);
-  
-}
+const { body, validationResult } = require("express-validator");
 
-});
+app.post(
+  "/signup",
+  [
+    body("firstName").notEmpty().withMessage("First name is required"),
+    body("emailId").isEmail().withMessage("Invalid email"),
+    body("password").notEmpty().withMessage("Password is required"),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json(errors.array());
+
+    try {
+      await User.create(req.body);
+      res.status(201).json({ message: "User saved in StackMate" });
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  }
+);
 
 
 //Get user by emailId
@@ -60,10 +69,20 @@ app.delete("/user",async(req,res)=>{
 })
 
 //update 
-app.patch("/user",async(req,res)=>{
-  const userId=req.body.userId;
+app.patch("/user/:userId",async(req,res)=>{
+  const userId=req.params?.userId;
   const data=req.body;
+ 
+ 
   try{
+     //making that there is after creation not allowed update like email
+  const allowedUpdate =["firstName","lastName","gender","about","skills","photoUrl","age","password"]
+
+  const isUpdateAllowed = Object.keys(data).every((k)=> allowedUpdate.includes(k));
+  if(!isUpdateAllowed){
+    res.status(400).send("Update Not allowed")
+  }
+
    const user = await User.findByIdAndUpdate({_id:userId},data,{
     returnDocument:'before',
      runValidators:true,

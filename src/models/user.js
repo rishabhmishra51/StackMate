@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const validator = require("validator")
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -20,32 +20,38 @@ const userSchema = new mongoose.Schema(
     },
 
     emailId: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      lowercase: true,
-      trim: true,
-      match: [
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-        "Please enter a valid email address",
-      ],
-    },
+  type: String,
+  required: [true, "Email is required"],
+  unique: true,
+  lowercase: true,
+  trim: true,
+  validate(value) {
+    if (!validator.isEmail(value)) {
+      throw new Error("Invalid email address: " + value);
+    }
+  },
+},
 
     password: {
       type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
-      maxlength: [20, "Password must be at most 20 characters"],
-      validate: {
-        validator: function (value) {
-          // At least 1 uppercase, 1 lowercase, 1 number, 1 special character
-          return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,20}$/.test(
-            value
-          );
-        },
-        message:
-          "Password must contain uppercase, lowercase, number and special character",
-      },
+     validate(value) {
+    if (!validator.isStrongPassword(value)) {
+      throw new Error("Enter a strong password");
+    }
+  },
+      // required: [true, "Password is required"],
+      // minlength: [6, "Password must be at least 6 characters"],
+      // maxlength: [20, "Password must be at most 20 characters"],
+      // validate: {
+      //   validator: function (value) {
+      //     // At least 1 uppercase, 1 lowercase, 1 number, 1 special character
+      //     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,20}$/.test(
+      //       value
+      //     );
+      //   },
+      //   message:
+      //     "Password must contain uppercase, lowercase, number and special character",
+      // },
     },
 
     age: {
@@ -66,11 +72,11 @@ const userSchema = new mongoose.Schema(
     photoUrl: {
       type: String,
       default: "https://geographyandyou.com/images/user-profile.png",
-      trim: true,
-      match: [
-        /^(https?:\/\/)(www\.)?[^\s]+$/i,
-        "Photo URL must be a valid URL",
-      ],
+      validate(value) {
+    if (!validator.isURL(value)) {
+      throw new Error("Invalid photo Url: " + value);
+    }
+  },
     },
 
     about: {
