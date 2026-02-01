@@ -1,7 +1,8 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const User = require("./models/user");
-
+const {validateSignUpData}=require("./utils/validation")
+const bcrypt=require("bcrypt")
 const app = express();
 
 //this express inbuild middleware now activated for all routes 
@@ -9,26 +10,51 @@ app.use(express.json());
 //difference between JSON vs JS object 
 const { body, validationResult } = require("express-validator");
 
-app.post(
-  "/signup",
-  [
-    body("firstName").notEmpty().withMessage("First name is required"),
-    body("emailId").isEmail().withMessage("Invalid email"),
-    body("password").notEmpty().withMessage("Password is required"),
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json(errors.array());
+app.post("/signup", async (req, res) => {
+ try{  
+  //Validation of data
+  validateSignUpData(req);
 
-    try {
-      await User.create(req.body);
-      res.status(201).json({ message: "User saved in StackMate" });
-    } catch (err) {
-      res.status(400).json({ message: err.message });
-    }
+  const {firstName,lastName,emailId, password}=req.body
+  //Encrypt the password 
+  
+  const passwordHash = await bcrypt.hash(password,10);
+  console.log(passwordHash);
+  // Creating a new instance of the User model
+  const user = new User({
+    firstName,
+    lastName,
+    emailId,
+    password:passwordHash,
+  });
+
+ 
+    await user.save();
+    res.send("User Added successfully!");
+  } catch (err) {
+    res.status(400).send("ERROR : " + err.message);
   }
-);
+});
 
+app.post("/login",async(req,res)=>{
+try{
+const {emailId,password}=req.body;
+const user =await User.findOne({emailId:emailId})
+if(!user){
+  throw new Error("invalid credentials")
+}
+const isPasswordValid = await bcrypt.compare(password,user.password)
+if(isPasswordValid){
+  res.send(" Login successfully!!")
+}
+else{
+  res.send("invalid credentials")
+}
+}
+catch(err){
+  res.status(400).send("EROOR : "+err.message)
+}
+});
 
 //Get user by emailId
 app.get("/user",async(req,res)=>{
