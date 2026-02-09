@@ -44,7 +44,7 @@ if(isPasswordValid){
   const token =await user.getJWT();
  
   res.cookie("token",token,{expires:new Date(Date.now()+9*3600000)})
-  res.send(" Login successfully!!")
+  res.send(" Login successfully!!") 
 }
 else{
   res.send("invalid credentials")
@@ -55,4 +55,10 @@ catch(err){
 }
 });
 
+authRouter.post("/logout",async(req,res)=>{
+     res.cookie("token",null,{
+          expires:new Date(Date.now())
+     })
+     res.send("Successful logout!!!")
+})
 module.exports = authRouter;
